@@ -1,5 +1,5 @@
 globalThis.vars={}
-globalThis.methods=[ //hi
+globalThis.methods=[
   [
     (()=>{
       console.log("test1")
@@ -14,7 +14,6 @@ globalThis.methods=[ //hi
   ]
   //put test method as array of functions
 ]
-
 
 globalThis.tests = [  
   () => {}, //KEEP THIS
