@@ -27,53 +27,55 @@ globalThis.tags = [
   "consoleLogTest" //example
 ];
 
-bfg = function(logMsg) {
-logMsg+=''
-let logArr = logMsg.match(/.{1,2000}/g)
-if(myId===null){
-for (let log of logArr)api.broadcastMessage(log)
-} else for (let log of logArr) api.sendMessage(myId,log)
+globalThis.results = {BASE:{}};
+
+let wait = 0;
+let test = [0, 0, 0]; // [testIndex, methodIndex, blockIndex]
+let testF = null;
+globalThis.BASE = results.BASE;
+
+function bfg(logMsg) {
+  logMsg += "";
+  let logArr = logMsg.match(/.{1,2000}/g) || [];
+  if (myId === null) {
+    for (let log of logArr) api.broadcastMessage(log);
+  } else {
+    for (let log of logArr) api.sendMessage(myId, log);
+  }
 }
 
-test = [0,0,0] //[test inx, test type inx, code block inx]
-results={}
-wait = 0
-
 function tick() {
-  if (wait != 20) {
-    wait++;
-    return;
-  }
+  if (wait == void 0 || ++wait < 20) return;
   wait = 0;
 
-  // Snapshot current triple
-  let [testIndex, typeIndex, blockIndex] = test;
+  let [ti, mi, bi] = test;
+  let block = methods[mi][bi];
 
-  // Grab the block BEFORE advancing
-  let block = globalThis.methods[typeIndex][blockIndex];
-
-  // Advance indices
-  test[2]++; // move to next block
-  if (test[2] >= globalThis.methods[typeIndex].length) {
-    test[2] = 0;
-    test[1]++; // next method
-  }
-  if (test[1] >= globalThis.methods.length) {
-    test[1] = 0;
-    test[0]++; // next snippet
-  }
-  if (test[0] >= globalThis.tests.length) {
-    //delete results.BASE
+  if (
+    ++bi >= methods[mi].length &&
+    !(bi = 0, ++mi < methods.length) &&
+    !(mi = 0, ++ti < tests.length)
+  ) {
     bfg(JSON.stringify(results));
-    wait = 40;
-    return; // stop here
+    wait = void 0;
+    return;
   }
 
-  // Update testF to current snippet
-  testF = globalThis.tests[test[0]];
+  test[0] = ti;
+  test[1] = mi;
+  test[2] = bi;
 
-  // Execute block LAST
-  if (typeof block === "function") {
-    block();
+  testF = tests[ti];
+  if (typeof block === "function") block();
+}
+
+function addResult(field, value, baseValue) {
+  const key = tags[test[0]] ?? test[0];
+  if (results.BASE[field] == void 0) {
+    results.BASE ??= {}
+    results.BASE[field] = baseValue
+  }else{
+    results[key] ??= {};
+    results[key][field] = value
   }
 }
